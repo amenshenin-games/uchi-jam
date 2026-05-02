@@ -1,0 +1,21 @@
+{"itemList":[
+    {
+        "id":0,
+        "ActiveName":"Poke",
+        "PassiveName":"Fly",
+        "ActiveStrength": 3,
+        "PassiveStrength":3,
+        "Description":"Подсказка",
+        "Image":"аист"
+    },
+    {
+        "id":1,
+        "ActiveName":"Bite",
+        "PassiveName":"Fly",
+        "ActiveStrength": 2,
+        "PassiveStrength":4,
+        "Description":"Подсказка2",
+        "Image":"ананас"
+    }
+    ]
+}

@@ -1,0 +1,35 @@
+{"enemyList":[
+    {
+        "id": 0,
+        "Health":20,
+        "ActionStrList":["Attack", "Attack", "Attack"],
+        "Strength":[4, 5, 6],
+        "Image": "",
+        "ChallengeRating": 1
+    },
+    {
+        "id": 1,
+        "Health":20,
+        "ActionStrList":["Attack", "Attack", "Attack"],
+        "Strength":[4, 5, 6],
+        "Image": "",
+        "ChallengeRating": 1
+    },
+    {
+        "id": 2,
+        "Health":20,
+        "ActionStrList":["Attack", "Attack", "Attack"],
+        "Strength":[4, 5, 6],
+        "Image": "",
+        "ChallengeRating": 1
+    },
+    {
+        "id": 3,
+        "Health":20,
+        "ActionStrList":["Attack", "Attack", "Attack"],
+        "Strength":[4, 5, 6],
+        "Image": "",
+        "ChallengeRating": 1
+    }
+    ]
+}
