@@ -4,6 +4,8 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine.UI; 
 using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine.Networking;
 
 public class ItemGen : MonoBehaviour
 {
@@ -15,13 +17,15 @@ public class ItemGen : MonoBehaviour
     [SerializeField] public List<GameObject> ItemPositions;
     [SerializeField] public List<ItemComponent> CurrentItems;
 
-    private IItemRepository itemLoader;
-    
-    void Awake()
+    private ItemLoader itemLoader;
+    HashSet<int> exclude;
+    async Task  Awake()
     {
-        itemLoader = new ItemLoader(Application.dataPath + "/items.json");
+        //itemLoader = new ItemLoader(Application.streamingAssetsPath + "/items.json");
+        itemLoader = new ItemLoader(); 
+        await itemLoader.LoadText("items.json");// Установите свой репозиторий сюда
 
-        HashSet<int> exclude = new HashSet<int>();
+        exclude = new HashSet<int>();
         for(int i=0; i < ItemPositions.Count; i++)
         {
             if (i >= itemLoader.ItemCount())
@@ -71,6 +75,7 @@ public class ItemGen : MonoBehaviour
                     chosenItems.Add(item.item);
                 }
             }
+            chosenItems.Add(itemLoader.GetRandomItemExcluding(exclude));
             itemLoader.SaveChosenItems(chosenItems);
             Curtains.GoToNextScene();
         }
@@ -97,10 +102,8 @@ public class ItemLoader : IItemRepository
 
     private ItemListWrapper itemListWrapper;
 
-    public ItemLoader(string fileName)
+    public ItemLoader()
     {
-        string jsonText = File.ReadAllText(fileName);
-        itemListWrapper  = JsonUtility.FromJson<ItemListWrapper>(jsonText);
     }
     public int ItemCount()
     {
@@ -116,7 +119,7 @@ public class ItemLoader : IItemRepository
     }
     public void SaveChosenItems(List<Item> items)
     {
-        string file = Application.dataPath + "/chosenItems.json";
+        string file = Application.persistentDataPath + "/chosenItems.json";
         ItemListWrapper smallItemListWrapper = new ItemListWrapper();
         smallItemListWrapper.itemList = items;
         string json = JsonUtility.ToJson(smallItemListWrapper);
@@ -124,7 +127,7 @@ public class ItemLoader : IItemRepository
     }
     public List<Item> GetChosenItems()
     {
-        string file = Application.dataPath + "/chosenItems.json";
+        string file = Application.persistentDataPath + "/chosenItems.json";
         string json = File.ReadAllText(file);
         ItemListWrapper chosenItems = JsonUtility.FromJson<ItemListWrapper>(json);
         return chosenItems.itemList;
@@ -136,5 +139,30 @@ public class ItemLoader : IItemRepository
         var rand = new System.Random();
         int randomIndex = range.ElementAt(rand.Next(0, ItemCount() - ExcludeIds.Count));
         return GetItemById(randomIndex);
+    }
+
+    
+    async public Task LoadText(string fileName)
+    {
+        //string jsonText = File.ReadAllText(fileName);
+        string jsonText = await LoadDialogsAsync(fileName);
+        itemListWrapper  = JsonUtility.FromJson<ItemListWrapper>(jsonText);
+    }
+    async Task<string> LoadDialogsAsync(string fileName)
+    {
+        string path = Path.Combine(Application.streamingAssetsPath, fileName);
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(path))
+        {
+            var operation = webRequest.SendWebRequest();
+
+            // Ждем завершения без блокировки потока
+            while (!operation.isDone)
+                await Task.Yield();
+
+            if (webRequest.result == UnityWebRequest.Result.Success)
+                return webRequest.downloadHandler.text;
+            
+            return null;
+        }
     }
 }

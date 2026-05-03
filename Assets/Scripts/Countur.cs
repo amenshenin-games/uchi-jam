@@ -1,24 +1,22 @@
 using System.Collections.Generic;
 using UnityEngine;
-using OpenCvSharp;
-using OpenCvSharp.Demo;
+using OpenCVForUnity.CoreModule;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement; 
+
+using OpenCVForUnity.ImgprocModule; 
+using OpenCVForUnity.UnityUtils;
 
 public class Countur : MonoBehaviour
 {
     [SerializeField] public Slider ThresholdSlider;
     [SerializeField] public Slider MinAreaSlider;
-    [SerializeField] public GameObject PhotoSurface;
-    [SerializeField] public float CurveAccuracy = 5;
+    [SerializeField] public RawImage PhotoSurface;
     [SerializeField] public Button NextButton;
     [SerializeField] public Toggle ShowOrig;
     
-
-    private OpenCvSharp.Point[][] Contours;
     private Mat image;
-    private Mat processedImage = new Mat();
     private RawImage CanvasImage;
     private RectTransform rt;
     private GameObject creatureObject;
@@ -37,8 +35,7 @@ public class Countur : MonoBehaviour
         rt = GetComponent<RectTransform>();
         creatureObject = GameObject.Find("CreatureObject"); 
         CreatureData creatureData = creatureObject.GetComponent<CreatureData>();
-        Texture passedTexture = OpenCvSharp.Unity.MatToTexture(creatureData.image);
-        image = creatureData.image;
+        Texture2D passedTexture = creatureData.image;
 
         float newWidth = passedTexture.width;
         float newHeight = passedTexture.height;
@@ -60,48 +57,68 @@ public class Countur : MonoBehaviour
 
         CanvasImage.texture = passedTexture;
         rt.sizeDelta = new Vector2(newWidth, newHeight);
+        
+        image = new Mat(passedTexture.height, passedTexture.width, CvType.CV_8UC4);
+        //processedImage = new Mat(passedTexture.height, passedTexture.width, CvType.CV_8UC4);
+        Utils.texture2DToMat(passedTexture, image);
 
+        ProcessTexture(0);
     }
     
     private void ProcessTexture(float valueFromChangedSlider)
     {
+        
+
         float Threshold = ThresholdSlider.value;
         float MinArea = MinAreaSlider.value;
 
-        Cv2.CvtColor(image, processedImage, ColorConversionCodes.BGR2GRAY);
-        Cv2.Threshold(processedImage, processedImage, Threshold, 225, ThresholdTypes.BinaryInv);
-        Cv2.FindContours(processedImage, out Contours, out _, RetrievalModes.Tree, ContourApproximationModes.ApproxSimple, null);
-        Mat mask = new Mat(processedImage.Size(), MatType.CV_8UC1, Scalar.All(0));
-        foreach (OpenCvSharp.Point[] contour in Contours)
+        Mat processedImage = new Mat(); 
+        image.copyTo(processedImage);
+        Imgproc.cvtColor(processedImage, processedImage, Imgproc.COLOR_RGBA2GRAY);
+        Imgproc.threshold(processedImage, processedImage, Threshold, 225, Imgproc.THRESH_BINARY_INV );
+        Mat hierarchy = new Mat();
+        List<MatOfPoint> contours = new List<MatOfPoint>();
+        Imgproc.findContours(processedImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Mat mask = new Mat(processedImage.size(), CvType.CV_8UC1, new Scalar(0));
+        foreach (MatOfPoint contour in contours)
         {
-            OpenCvSharp.Point[] points = Cv2.ApproxPolyDP(contour, CurveAccuracy, true);
-            if (Cv2.ContourArea(contour) > MinArea)
+            MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+            MatOfPoint2f approx2f = new MatOfPoint2f();
+            double epsilon = 0.02 * Imgproc.arcLength(contour2f, true);
+            Imgproc.approxPolyDP(contour2f, approx2f, epsilon, true);
+            if (Imgproc.contourArea(contour2f, false) > MinArea)
             {
-                Cv2.DrawContours(mask, new[] { contour}, -1, Scalar.All(225), thickness: -1);
+                Imgproc.drawContours(mask, new List<MatOfPoint> { contour}, -1, new Scalar(255), thickness: -1);
             }
         }
-        
-        Mat bgra = new Mat();
-        Cv2.CvtColor(image, bgra, ColorConversionCodes.BGR2BGRA);
-        Mat transparentMat = new Mat(bgra.Size(), MatType.CV_8UC4, new Scalar(0, 0, 0, 0));
-        bgra.CopyTo(transparentMat, mask);
+
+
+        Mat dst = new Mat(image.size(), CvType.CV_8UC4, new Scalar(0, 0, 0, 0));
+        image.copyTo(dst, mask); 
+        //OpenCVForUnity.CoreModule.Rect roi = Imgproc.boundingRect(contours[maxIdx]);
+        //Mat finalCropped = new Mat(dst, roi);
+        Texture2D newTexture = new Texture2D(dst.cols(), dst.rows(), TextureFormat.RGBA32, false);
 
         if (!ShowOrig.isOn)
         {
-            CanvasImage.texture = OpenCvSharp.Unity.MatToTexture(transparentMat);
+            Utils.matToTexture2D(dst, newTexture);
+
+            //Utils.matToTexture2D(transparentMat, newTexture);
+            //CanvasImage.texture = OpenCvSharp.Unity.MatToTexture(transparentMat);
             
         }
         else
         {
-            CanvasImage.texture = OpenCvSharp.Unity.MatToTexture(processedImage);
+            Utils.matToTexture2D(processedImage, newTexture);
+            //CanvasImage.texture = OpenCvSharp.Unity.MatToTexture(processedImage);
         }
-        
-        processedImage = transparentMat;
+        PhotoSurface.texture = newTexture;
+        //processedImage = dst;
     }
 
     private void OnNextButton()
     {
-        creatureObject.GetComponent<CreatureData>().image = processedImage;
+        creatureObject.GetComponent<CreatureData>().image = (Texture2D)PhotoSurface.texture;
         SceneManager.LoadScene("Sound");
     }
 

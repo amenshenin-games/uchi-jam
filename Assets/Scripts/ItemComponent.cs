@@ -32,7 +32,9 @@ public class ItemComponent : MonoBehaviour, IDragHandler, IBeginDragHandler, IEn
         rt = GetComponent<RectTransform>();
         rt.localScale = new Vector3(1, 1, 1);
 
-        Description.transform.GetChild(0).GetComponent<TMP_Text>().SetText(item.Description);
+        Description.transform.GetChild(0).GetComponent<TMP_Text>().SetText(item.ActiveDescription + "\n" + item.PassiveDescription);
+        Description.transform.GetChild(1).GetComponent<Image>().sprite = Resources.Load<Sprite>("icons/" + item.Icon);
+        
     }
 
     public void SetUp(Item item, Vector2 Destination)

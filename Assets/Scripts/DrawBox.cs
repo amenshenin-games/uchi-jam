@@ -4,8 +4,7 @@ using UnityEngine.InputSystem;
 
 
 using UnityEngine.UI;
-using OpenCvSharp;
-using OpenCvSharp.Demo;
+using OpenCVForUnity.CoreModule;
 public class DrawBox : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
 {
     [SerializeField] public Canvas canvas;

@@ -24,6 +24,15 @@ public class CaptureAudio : MonoBehaviour
     {
         creatureObject = GameObject.Find("CreatureObject");
 
+        
+
+        StartRecButton.onClick.AddListener(OnStartRecButton);
+        ListenButton.onClick.AddListener(OnListenButton);
+        NextButton.onClick.AddListener(OnNextButton);
+    }
+
+    private void OnStartRecButton()
+    {
         List<string> micList = new List<string>();
         foreach (string mic in Microphone.devices)
         {
@@ -34,14 +43,7 @@ public class CaptureAudio : MonoBehaviour
         dropDownList.onValueChanged.AddListener(delegate {
                 MicrophoneName = Microphone.devices[dropDownList.value];
             });
-
-        StartRecButton.onClick.AddListener(OnStartRecButton);
-        ListenButton.onClick.AddListener(OnListenButton);
-        NextButton.onClick.AddListener(OnNextButton);
-    }
-
-    private void OnStartRecButton()
-    {
+            
         if (!imgChanged)
         {
             StartCoroutine(SwapRoutine(StartRecButton, RedRecord));

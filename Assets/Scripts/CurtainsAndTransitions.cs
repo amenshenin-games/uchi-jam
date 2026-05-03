@@ -15,6 +15,7 @@ public class CurtainsAndTransitions : MonoBehaviour
     {
         if (NextSceneButton is not null)
         {
+            Debug.Log("SET BUTTON");
             NextSceneButton.onClick.AddListener(GoToNextScene);
         }
     }

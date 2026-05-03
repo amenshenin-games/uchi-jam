@@ -1,10 +1,9 @@
 using UnityEngine;
-using OpenCvSharp;
+using System.Collections.Generic;
 
 public class CreatureData : MonoBehaviour
 {
-    public Mat image;
+    public Texture2D image;
     public AudioClip sound;
-    
 
 }

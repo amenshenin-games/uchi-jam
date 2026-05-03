@@ -960,8 +960,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Countur
   ThresholdSlider: {fileID: 508876918}
   MinAreaSlider: {fileID: 282282059}
-  PhotoSurface: {fileID: 0}
-  CurveAccuracy: 5
+  PhotoSurface: {fileID: 735376732}
   NextButton: {fileID: 388257437}
   ShowOrig: {fileID: 2116454408}
 --- !u!1 &746398367

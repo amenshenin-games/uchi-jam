@@ -13,15 +13,22 @@ public enum Actions
     SuperBite,
     Confusion,
     Block,
-    Trap,
     Heal,
-    Parry,
-    Stunning,
-    Vitamin,
-    DoubleBite,
     FullHeal,
+    EnhanceAbility,
+    IncreaseAttacksDamage,
+    //Trap,
+    Flight,
+    Bold,
+    Venomous,
+    Fast,
+    Treasure,
+    Health,
+    Venom,
+    //Parry,
+    //Stunning,
+    DoubleBite,
     Status,
-    IncreaseDamage,
     DoNothing
 }
 
@@ -38,9 +45,82 @@ public enum Tags
     Health,
     Defense,
     Status,
+    Energy,
+    StartOfTurn,
+    StartOfBattle,
+    Positive,
     Attack
 }
 
+public class ActionsUtility
+{
+    public static Ability GetActionFromString(string actionStr, int strength, int cost)
+    {
+        Actions action;
+        Enum.TryParse(actionStr, out action);
+
+        Ability a;
+        switch (action)
+        {
+            case Actions.Attack:
+                a = new AttackAbility(strength, cost);
+                break;
+            case Actions.Poison:
+                a = new StatusAbility<Poisoned>(strength, cost, 1, new List<Tags> { Tags.Venom, Tags.Status, Tags.Attack });
+                break;
+            case Actions.SuperBite:
+                a = new SuperBiteAbility(strength, cost);
+                break;
+            case Actions.Confusion:
+                a = new StatusAbility<Confused>(strength, cost, 1, new List<Tags> { Tags.Status });
+                break;
+            case Actions.Block:
+                a = new Block(strength, cost);
+                break;
+            case Actions.Heal:
+                a = new Heal(strength, cost);
+                break;
+            case Actions.FullHeal:
+                a = new FullHeal(strength, cost);
+                break;
+            case Actions.EnhanceAbility:
+                a = new EnhanceAbility(strength, cost);
+                break;
+            case Actions.IncreaseAttacksDamage:
+                a = new IncreaseAttacksDamage(strength, cost);
+                break;
+            case Actions.Flight:
+                a = new Flight(strength, cost);
+                break;
+            case Actions.Bold:
+                a = new Bold(strength, cost);
+                break;
+            case Actions.Venomous:
+                a = new Venomous(strength, cost);
+                break;
+            case Actions.Fast:
+                a = new Fast(strength, cost);
+                break;
+            case Actions.Treasure:
+                a = new Treasure(strength, cost);
+                break;
+            case Actions.Health:
+                a = new Health(strength, cost);
+                break;
+            case Actions.Venom:
+                a = new Venom(strength, cost);
+                break;
+            case Actions.DoubleBite:
+                a = new DoubleBite(strength, cost);
+                break;
+            default: // Optional fallback
+                a = new AttackAbility(strength, cost);
+                break;
+        }
+
+        return a;
+    }
+}
 
 [Serializable]
 public class GenericEnemy : Enemy
@@ -48,13 +128,14 @@ public class GenericEnemy : Enemy
     /// <summary>
     /// Класс, позволяющий сериализовать противников
     /// </summary>
-    private int currAbility = 0;
+    public int currAbility = 0;
     public int id; 
     public int Health; 
     public List<string> ActionStrList;
     public  List<int> Strength;
     public string Image; 
     public int ChallengeRating;
+    public List<string> Icons; 
 
     public GenericEnemy(int id, int Health, List<string> ActionStrList, List<int> Strength, string Image, int ChallengeRating) : base(Health)
     {
@@ -67,6 +148,21 @@ public class GenericEnemy : Enemy
         this.ChallengeRating = ChallengeRating;
         Init();
     }
+    public GenericEnemy(GenericEnemy other) : base(other.Health)
+    {
+        this.id = other.id;
+        this.Health = other.Health;
+        this.Image = other.Image;
+        this.ChallengeRating = other.ChallengeRating;
+        this.Icons = other.Icons;
+        
+        // Создаем новые списки, чтобы данные не были связаны
+        this.ActionStrList = new List<string>(other.ActionStrList);
+        this.Strength = new List<int>(other.Strength);
+        
+        // Инициализируем здоровье и способности
+        this.Init();
+    }
 
     public void Init()
     {
@@ -77,45 +173,30 @@ public class GenericEnemy : Enemy
         int i = 0;
         foreach(string actionInStr in ActionStrList)
         {
-            Actions action;
-            Enum.TryParse(actionInStr, out action);
-
-            Ability a;
-            switch (action)
-            {
-                case Actions.Attack:
-                    a = new AttackAbility(Strength[i], 0);
-                    break;
-                case Actions.Poison:
-                    a = new StatusAbility<Poisoned>(Strength[i], 0, 1);
-                    break;
-                case Actions.SuperBite:
-                    a = new SuperBiteAbility(Strength[i], 0);
-                    break;
-                case Actions.Confusion:
-                    a = new StatusAbility<Confused>(Strength[i], 0, 1);
-                    break;
-                default: // Optional fallback
-                    a = new AttackAbility(Strength[i], 0);
-                    break;
-            }
-            
-            abilityList.Add(a);
+            Debug.Log(id);
+            abilityList.Add(ActionsUtility.GetActionFromString(actionInStr, Strength[i], 0));
             i++;
         }
     }
 
     /// <summary>
-    /// Обычный противник просто выбирает случайное из списка своих действий.
+    /// Обычный противник просто выбирает следующее из списка своих действий.
     /// </summary>
     public override void TakeTurn(params object[] args)
     {
-        abilityList[currAbility].ExecAbility(target, args);
+        block = 0;
+
+        if (abilityList[currAbility].tags.Contains(Tags.Positive))
+            abilityList[currAbility].ExecAbility(this, args);
+        else
+            abilityList[currAbility].ExecAbility(target, args); 
+
         currAbility++;
         if (currAbility >= abilityList.Count)
         {
             currAbility = 0;
         }
+        Debug.Log(target.CurrentHealth);
     }
 }
 
@@ -133,6 +214,19 @@ public class AttackAbility : Ability
         target.TakeDamage(value);
     }
 }
+public class DoubleBite : AttackAbility
+{
+    public DoubleBite(int value, int cost): base(value, cost)
+    {
+        name = Actions.DoubleBite;
+        repeats = 2;
+    }
+    protected override void DoStuff(Entity target, object[] args)
+    {
+        target.TakeDamage(value);
+    }
+}
+
 public class Poisoned : Status
 {
     public Poisoned() : base()
@@ -141,6 +235,7 @@ public class Poisoned : Status
         statusName = "Poisoned";
         tags.Add(Tags.Status);
         tags.Add(Tags.Damage);
+        tags.Add(Tags.Venom);
     }
     public Poisoned(int value, int cost, int duration): base(value, cost, duration)
     {
@@ -167,8 +262,9 @@ public class Poisoned : Status
 public class StatusAbility<T>: Ability where T : Status, new()
 {
     int duration;
-    public StatusAbility(int value, int cost, int duration): base(value, cost)
+    public StatusAbility(int value, int cost, int duration, List<Tags> additionalTags): base(value, cost)
     {
+        tags = additionalTags;
         tags.Add(Tags.Active);
         tags.Add(Tags.Status);
         this.duration = duration;
@@ -203,9 +299,13 @@ public class SuperBiteAbility : Ability
     }
     protected override void DoStuff(Entity target, object[] args)
     {
-        if (value >= UnityEngine.Random.Range(1, 101))
+        int rand = UnityEngine.Random.Range(1, 101);
+        Debug.Log(value);
+        Debug.Log(rand);
+        if (value >= rand)
         {   
-            target.TakeDamage(target.MaxHealth / 2);
+            Debug.Log(target.MaxHealth / 2);
+            target.TakeDamage((int)(target.MaxHealth / 2));
         }
     }
 }
@@ -235,6 +335,7 @@ public class Confused : Status
         }
 
         int randomIndex = UnityEngine.Random.Range(0, args.Length);
+        Debug.Log(randomIndex);
         targetOfThisStatus.target = (Entity)args[randomIndex];
     }
     public override void EndOfStatus(Entity target, params object[] args)
@@ -266,6 +367,7 @@ public class Heal : Ability
         tags.Add(Tags.Active);
         tags.Add(Tags.Defense);
         tags.Add(Tags.Health);
+        tags.Add(Tags.Positive);
     }
     protected override void DoStuff(Entity target, object[] args)
     {
@@ -280,20 +382,22 @@ public class FullHeal : Ability
         tags.Add(Tags.Active);
         tags.Add(Tags.Defense);
         tags.Add(Tags.Health);
+        tags.Add(Tags.Positive);
     }
     protected override void DoStuff(Entity target, object[] args)
     {
         target.RestoreHealth(target.MaxHealth);
     }
 }
-public class IncreaseDamage : Ability
+public class EnhanceAbility : Ability
 {
-    public IncreaseDamage(int value, int cost): base(value, cost)
+    public EnhanceAbility(int value, int cost): base(value, cost)
     {
-        name = Actions.IncreaseDamage;
+        name = Actions.EnhanceAbility;
         tags.Add(Tags.Active);
         tags.Add(Tags.Defense);
         tags.Add(Tags.Health);
+        tags.Add(Tags.Positive);
     }
     protected override void DoStuff(Entity target, object[] args)
     {
@@ -307,10 +411,12 @@ public class IncreaseAttacksDamage : Ability
 {
     public IncreaseAttacksDamage(int value, int cost): base(value, cost)
     {
-        name = Actions.IncreaseDamage;
-        tags.Add(Tags.Active);
+        name = Actions.IncreaseAttacksDamage;
+        tags.Add(Tags.Passive);
         tags.Add(Tags.Defense);
         tags.Add(Tags.Health);
+        tags.Add(Tags.StartOfTurn);
+        tags.Add(Tags.Positive);
     }
     protected override void DoStuff(Entity target, object[] args)
     {
@@ -328,11 +434,141 @@ public class Flight : Ability
     {
         name = Actions.DoNothing;
         tags.Add(Tags.Fly); 
+        tags.Add(Tags.Passive);
+        tags.Add(Tags.Positive);
     }
     protected override void DoStuff(Entity target, object[] args)
     {
     }
 }
+public class Bold : Ability
+{
+    public Bold(int value, int cost): base(value, cost)
+    {
+        name = Actions.Bold;
+        tags.Add(Tags.Passive);
+        tags.Add(Tags.Energy);
+        tags.Add(Tags.StartOfBattle);
+        tags.Add(Tags.Positive);
+    }
+    protected override void DoStuff(Entity target, object[] args)
+    {
+        target.abilityList[0].cost += value;
+        target.abilityList[0].repeats += value;
+    }
+}
+public class Venomous : Ability
+{
+    public Venomous(int value, int cost): base(value, cost)
+    {
+        name = Actions.Venomous;
+        tags.Add(Tags.Passive);
+        tags.Add(Tags.StartOfTurn);
+        tags.Add(Tags.Positive);
+    }
+    protected override void DoStuff(Entity target, object[] args)
+    {
+        foreach (Ability ab in target.abilityList)
+        {
+            if (ab.tags.Contains(Tags.Venom))
+                ab.add += 1;
+        }
+    }
+}
+public class Fast : Ability
+{
+    public Fast(int value, int cost): base(value, cost)
+    {
+        name = Actions.Fast;
+        tags.Add(Tags.Energy);
+        tags.Add(Tags.Passive);
+        tags.Add(Tags.StartOfBattle);
+        tags.Add(Tags.Positive);
+    }
+    protected override void DoStuff(Entity target, object[] args)
+    {
+        Player p = (Player)target;
+        Debug.Log(p.MaxEnergy);
+        p.MaxEnergy += 1;
+        Debug.Log(p.MaxEnergy);
+    }
+}
+public class Treasure : Ability
+{
+    public Treasure(int value, int cost): base(value, cost)
+    {
+        name = Actions.Treasure;
+        tags.Add(Tags.Passive);
+        tags.Add(Tags.StartOfBattle);
+        tags.Add(Tags.Positive);
+    }
+    protected override void DoStuff(Entity target, object[] args)
+    {
+        foreach (Ability ab in target.abilityList)
+        {
+            if (ab.tags.Contains(Tags.Status))
+                ab.mult += 1;
+        }
+    }
+}
+public class Health : Ability
+{
+    public Health(int value, int cost): base(value, cost)
+    {
+        name = Actions.Health;
+        tags.Add(Tags.Passive);
+        tags.Add(Tags.StartOfTurn);
+        tags.Add(Tags.Defense);
+        tags.Add(Tags.Positive);
+    }
+    protected override void DoStuff(Entity target, object[] args)
+    {
+        Debug.Log(value);
+        target.block += value;
+    }
+}
+public class Venom : Ability
+{
+    public Venom(int value, int cost): base(value, cost)
+    {
+        name = Actions.Venom;
+        tags.Add(Tags.Passive);
+        tags.Add(Tags.StartOfTurn);
+        tags.Add(Tags.Defense);
+    }
+    protected override void DoStuff(Entity target, object[] args)
+    {
+        foreach (Entity trg in args)
+        {
+            Ability a = new StatusAbility<Poisoned>(1, 0, 1, new List<Tags>{Tags.Venom, Tags.Status});
+            a.ExecAbility(target);
+        }
+    }
+}
+
+/*
+public class Venom : Ability
+{
+    public Venom(int value, int cost): base(value, cost)
+    {
+        name = Actions.Fast;
+        tags.Add(Tags.Passive);
+        tags.Add(Tags.StartOfTurn);
+        tags.Add(Tags.Defense);
+    }
+    protected override void DoStuff(Entity target, object[] args)
+    {
+        foreach (Entity target in args)
+        {
+            Ability a = new StatusAbility<Poisoned>(Strength[i], 0, 1);
+            a.ExecAbility(target);
+        }
+    }
+}*/
+
+
+
+
 
 
 

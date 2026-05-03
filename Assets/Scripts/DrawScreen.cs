@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using UnityEngine.Networking;
 
 public class DrawScreen : MonoBehaviour 
 {
@@ -8,10 +10,13 @@ public class DrawScreen : MonoBehaviour
     [SerializeField] public GameObject ItemPrefab; 
     [SerializeField] public GameObject ItemHolder; 
 
-    void Start()
+    async Task Start()
     {
-        IItemRepository itemLoader = new ItemLoader(Application.dataPath + "/chosenItems.json");
-        List<Item> chosenItems = itemLoader.GetAll();
+        //IItemRepository itemLoader = new ItemLoader(Application.streamingAssetsPath + "/chosenItems.json");
+        ItemLoader itemLoader = new ItemLoader();
+        //await itemLoader.LoadText(Application.streamingAssetsPath + "/chosenItems.json");
+        
+        List<Item> chosenItems = itemLoader.GetChosenItems();
         HashSet<int> exclude = new HashSet<int>();
 
         int i = 0;
@@ -19,7 +24,7 @@ public class DrawScreen : MonoBehaviour
         {
             exclude.Add(item.id);
 
-            if (i <= 2)
+            if (i < 2)
             {
                 GameObject newItem = Instantiate(ItemPrefab, new Vector3(0,0,0), Quaternion.identity);
                 ItemComponent ic = newItem.GetComponent<ItemComponent>();
@@ -29,6 +34,5 @@ public class DrawScreen : MonoBehaviour
             }
             i++;
         }
-        //TODO +1 Item
     }
 }

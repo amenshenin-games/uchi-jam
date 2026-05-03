@@ -1,35 +1,36 @@
 using System.Collections.Generic;
 using UnityEngine;
-using OpenCvSharp;
-using OpenCvSharp.Demo;
+using OpenCVForUnity.CoreModule;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement; 
 using UnityEngine.EventSystems;
 
-public class TakePhoto : WebCamera
+
+using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.UnityUtils;
+
+public class TakePhoto : MonoBehaviour
 {
     [SerializeField] public TMP_Dropdown dropDownList;
     [SerializeField] public TMP_Text Instructions;
     [SerializeField] public Button TakePhotoButton;
     [SerializeField] public Button NextButton;
-    [SerializeField] public GameObject PhotoSurface;
+    [SerializeField] public RawImage PhotoSurface;
+    [SerializeField] public RawImage VideoSurface;
     private CreatureData creatureData;
     private GameObject creatureObject;
 
-    private Mat VideoImage;
-    public Mat PhotoImage;
+    private WebCamTexture webcamTexture;
+    //private Mat VideoImage;
+    //public Mat PhotoImage;
     
 
     public void Start()
     {
+
         Instructions.SetText("Сделай снимок своего рисунка");
-        creatureObject = GameObject.Find("CreatureObject");
-        if (creatureObject is not null)
-        {
-            creatureData = creatureObject.GetComponent<CreatureData>();
-            PhotoSurface.GetComponent<RawImage>().texture = OpenCvSharp.Unity.MatToTexture(creatureData.image);
-        }
+        
 
         List<string> camList = new List<string>();
         foreach (WebCamDevice cam in WebCamTexture.devices)
@@ -41,33 +42,43 @@ public class TakePhoto : WebCamera
         dropDownList.AddOptions(camList);
         dropDownList.value = -1; 
         dropDownList.onValueChanged.AddListener(delegate {
-                DeviceName = WebCamTexture.devices[dropDownList.value].name;
+                SetCamera(dropDownList.value);
+                //DeviceName = WebCamTexture.devices[dropDownList.value].name;
             });
+        WebCamTexture webcamTexture = new WebCamTexture();
+        webcamTexture.Play();
 
         TakePhotoButton.onClick.AddListener(OnPhotoButton);
         NextButton.onClick.AddListener(OnNextButton);
-        
     }
     
-    protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
+
+    void Update()
     {
-        
-        VideoImage = OpenCvSharp.Unity.TextureToMat(input);
-
-        if (output == null)
-            output = OpenCvSharp.Unity.MatToTexture(VideoImage);
-        else
-            OpenCvSharp.Unity.MatToTexture(VideoImage, output);
-
-        
-        return true;
+        //.texture = webcamTexture;
     }
+    public void SetCamera(int index)
+    {
+        if (WebCamTexture.devices.Length <= index) return;
 
-    
+        // Останавливаем текущую камеру, если она работает
+        if (webcamTexture != null && webcamTexture.isPlaying)
+            webcamTexture.Stop();
+
+        // Создаем текстуру для выбранного устройства по его имени
+        string deviceName = WebCamTexture.devices[index].name;
+        webcamTexture = new WebCamTexture(deviceName);
+
+        VideoSurface.texture = webcamTexture;
+        webcamTexture.Play();
+    }
     private void OnPhotoButton()
     {
-        PhotoImage = VideoImage;
-        PhotoSurface.GetComponent<RawImage>().texture =  OpenCvSharp.Unity.MatToTexture(PhotoImage);
+        //PhotoImage = VideoImage;
+        Texture2D photo = new Texture2D(webcamTexture.width, webcamTexture.height); 
+        photo.SetPixels(webcamTexture.GetPixels());
+        photo.Apply();
+        PhotoSurface.texture = photo;
         Instructions.SetText("Выдели на фото своего чудика");
     }
 
@@ -86,7 +97,7 @@ public class TakePhoto : WebCamera
 
         Vector2 StartPos = PhotoSurface.GetComponent<DrawBox>().StartPos;
         Vector2 EndPos = PhotoSurface.GetComponent<DrawBox>().EndPos;
-        Texture textureFromImage = PhotoSurface.GetComponent<RawImage>().texture;
+        Texture textureFromImage = PhotoSurface.texture;
         
         if (StartPos != EndPos) // Обрезание
         {
@@ -113,16 +124,25 @@ public class TakePhoto : WebCamera
                 EndPos.y = tmp;
             }
 
-            OpenCvSharp.Rect rect = new OpenCvSharp.Rect((int)StartPos.x, //x top left
+            OpenCVForUnity.CoreModule.Rect rect = new OpenCVForUnity.CoreModule.Rect((int)StartPos.x, //x top left
                                                          (int)StartPos.y, //y top left
                                                          (int)EndPos.x - (int)StartPos.x, //width
                                                          (int)EndPos.y - (int)StartPos.y); //height
- 
-            creatureData.image = new Mat(PhotoImage, rect);
+
+            
+            Mat fullMat = new Mat(PhotoSurface.texture.height, PhotoSurface.texture.width, CvType.CV_8UC4);
+            Utils.texture2DToMat((Texture2D)PhotoSurface.texture, fullMat);
+            Mat croppedMat = new Mat(fullMat, rect);
+            Texture2D croppedTex = new Texture2D(rect.width, rect.height, TextureFormat.RGBA32, false);
+            Utils.matToTexture2D(croppedMat, croppedTex);
+            fullMat.release();
+            croppedMat.release();
+
+            creatureData.image = croppedTex;
         }
 
-        webCamTexture.Stop();
-        webCamTexture = null;
+        webcamTexture.Stop();
+        webcamTexture = null;
         
         SceneManager.LoadScene("Edit");
     }

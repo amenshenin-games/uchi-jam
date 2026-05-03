@@ -1,0 +1,66 @@
+{"enemyList":[
+ {
+        "id": 0,
+        "Health":8,
+        "ActionStrList":["Poison", "Block", "IncreaseAttacksDamage"],
+        "Strength":[2, 1, 1],
+        "Image": "bug",
+        "ChallengeRating": 2,
+        "Icons": ["PoisonMobIcon", "BlockMobIcon", "IncreaseAttacksDamageMobIcon"]
+    },
+ {
+        "id": 1,
+        "Health":8,
+        "ActionStrList":["SuperBite"],
+        "Strength":[3],
+        "Image": "cloud",
+        "ChallengeRating": 4,
+  "Icons": ["SuperBiteMobIcon"]
+    },
+ {
+        "id": 2,
+        "Health":5,
+        "ActionStrList":["Poison", "Block"],
+        "Strength":[2, 5],
+        "Image": "flover",
+        "ChallengeRating": 3,
+        "Icons": ["PoisonMobIcon", "BlockMobIcon"]
+    },
+ {
+        "id": 3,
+        "Health":5,
+        "ActionStrList":["Attack", "Heal"],
+        "Strength":[1, 2],
+        "Image": "helper",
+        "ChallengeRating": 1,
+  "Icons": ["AttackMob", "HealMobIcon"]
+    },
+ {
+        "id": 4,
+        "Health":5,
+        "ActionStrList":["Attack"],
+        "Strength":[1],
+        "Image": "mob1",
+        "ChallengeRating": 1,
+  "Icons": ["AttackMob"]
+    },
+ {
+        "id": 5,
+        "Health":5,
+        "ActionStrList":["Attack"],
+        "Strength":[1],
+        "Image": "mob2",
+        "ChallengeRating": 1,
+  "Icons": ["AttackMob"]
+    },
+ {
+        "id": 6,
+        "Health":10,
+        "ActionStrList":["DoubleBite"],
+        "Strength":[2],
+        "Image": "mob3",
+        "ChallengeRating": 3,
+  "Icons": ["DoubleBiteMobIcon"]
+    }
+    ]
+}

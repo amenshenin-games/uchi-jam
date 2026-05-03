@@ -23,5 +23,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Sound.unity
     guid: 7469efb4ea698a54a8e6829ed4c06115
+  - enabled: 1
+    path: Assets/Scenes/Ready.unity
+    guid: c1e2a9fcb094c0145a07fcd7b4541a1f
+  - enabled: 1
+    path: Assets/Scenes/Fight.unity
+    guid: ea561e7e48f74ec4ca7936c51207f9b2
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

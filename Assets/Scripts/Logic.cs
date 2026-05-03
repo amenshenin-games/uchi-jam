@@ -1,3 +1,5 @@
+using System.ComponentModel.Design.Serialization;
+using System.Diagnostics.Tracing;
 using UnityEngine;
 using System.Collections.Generic;
 using System;
@@ -18,7 +20,7 @@ public abstract class Ability
     public int add = 0; /// Модификатор, влияющий на способность, изменяется извне
     public int mult = 1; /// Мультипликатор, влияющий на способность, изменяется извне
     public int repeats = 1; /// Количество повторений способности, изменяется извне
-    protected int value{ get => (int)initValue*mult + add;} /// Основной параметр, который потом следует применять в  в DoStuff()
+    public int value{ get => (int)initValue*mult + add;} /// Основной параметр, который потом следует применять в  в DoStuff()
 
 
 
@@ -46,6 +48,8 @@ public abstract class Ability
     public virtual void ExecAbility(Entity target, params object[] args)
     {
         for (int i=0; i < repeats; i++){
+            Debug.Log(name);
+            Debug.Log(value);
             DoStuff(target, args);
         }
     }
@@ -142,9 +146,23 @@ public class Entity
     /// Метод для получения урона. Делает проверку и вызывает поражение, если здоровье на 0
     /// </summary>
     /// <param name="damage">урон</param>
-    public void TakeDamage(float damage)
+    public void TakeDamage(int damage)
     {
-        CurrentHealth -= (int)damage - block;
+        if (block > 0)
+        {
+            if (block > damage)
+            {
+                block -= damage;
+                damage = 0;
+            }
+            else
+            {
+                block = 0;
+                damage -= block;
+            }
+        }
+
+        CurrentHealth -= (int)damage;
         if (CurrentHealth <= 0)
         {
             Defeat();
@@ -169,11 +187,9 @@ public class Entity
     /// </summary>
     public void StatusTick(params object[] args)
     {
-        Debug.Log(statusEffects.Count);
         List<string> keys = statusEffects.Keys.ToList();
         foreach (string name in keys)
         {
-            Debug.Log(name);
             if (statusEffects[name].active)
                 statusEffects[name].ExecAbility(this, args);
             else
@@ -202,36 +218,7 @@ public abstract class Enemy : Entity
     /// </summary>
     public abstract void TakeTurn(params object[] args);
 }
-/*
-public class Player : Entity
-{
-    int MaxEnergy;
-    int EnergyAdd;
-    int CurrentEnergy;
-    
-    public Player(float Health): base(Health)
-    {
-        this.EnergyAdd = 0;
-        this.MaxEnergy = 3;
-        this.CurrentEnergy = MaxEnergy;
-    }
 
-    public void DoAction(int i)
-    {       
-        if (EnergyAdd > 0)
-        {
-            EnergyAdd--;
-            return MaxEnergy + EnergyAdd+1;
-        }
-        else if (EnergyAdd < 0)
-        {
-            EnergyAdd--;
-            return MaxEnergy + EnergyAdd+1;
-        }
-        
-    }
-
-}*/ 
 
 [Serializable]
 public class Item
@@ -239,25 +226,37 @@ public class Item
     public int id;
     public string ActiveName;
     public string PassiveName;
-    public string ActiveStrength;
-    public string PassiveStrength;
+    public int ActiveStrength;
+    public int PassiveStrength;
+    public int ActiveCost;
     public string Image;
-    public string Description;
-    Item(int id, string ActiveName, string PassiveName, string ActiveStrength, string PassiveStrength, string Image, string Description)
+    public string Icon;
+    public string ActiveDescription;
+    public string PassiveDescription;
+    public Item(int id, string activeName, string passiveName, int activeStrength, int ActiveCost, string Icon,
+                int passiveStrength, string image, string activeDescription, string passiveDescription)
     {
         this.id = id;
-        this.ActiveName = ActiveName;
-        this.PassiveName = PassiveName;
-        this.ActiveStrength = ActiveStrength;
-        this.PassiveStrength = PassiveStrength;
-        this.Description = Description;
-        this.Image = Image;
+        this.ActiveName = activeName;
+        this.PassiveName = passiveName;
+        this.ActiveStrength = activeStrength;
+        this.PassiveStrength = passiveStrength;
+        this.Image = image;
+        this.ActiveDescription = activeDescription;
+        this.PassiveDescription = passiveDescription;
+        this.ActiveCost = ActiveCost;
+        this.Icon = Icon;
     }
 
     public override string ToString()
     {
-        return $"{{ActiveString: {ActiveName}, PassiveString: {PassiveName}, ActiveStrength: {ActiveStrength}, PassiveStrength: {PassiveStrength} image: {Image}, Description: {Description}}}";
+        return $"[Item ID: {id}] {ActiveName} / {PassiveName} " +
+            $"(Strength: A:{ActiveStrength} P:{PassiveStrength}, Cost: {ActiveCost})";
     }
+    /*public override string ToString()
+    {
+        return $"{{ActiveString: {ActiveName}, PassiveString: {PassiveName}, ActiveStrength: {ActiveStrength}, PassiveStrength: {PassiveStrength} image: {Image}, Description: {Description}}}";
+    }*/
 }
 
 [Serializable]
@@ -267,3 +266,56 @@ public class ItemListWrapper
 
 }
 
+
+public class Player : Entity
+{
+    public int MaxEnergy;
+    public int EnergyAdd;
+    public int CurrentEnergy;
+    
+    public Player(float Health): base(Health)
+    {
+        this.EnergyAdd = 0;
+        this.MaxEnergy = 3;
+        this.CurrentEnergy = MaxEnergy;
+    }
+    public void SetAbility(string ability, int strength, int cost)
+    {
+        Ability a = ActionsUtility.GetActionFromString(ability, strength, cost);
+        abilityList.Add(a);
+    }
+
+    public void UseAbility(int abilityNum, Entity target, params object[] args)
+    {
+        if (CurrentEnergy >= abilityList[abilityNum*2].cost)
+        {
+            abilityList[abilityNum*2].ExecAbility(target, args);
+            CurrentEnergy -= abilityList[abilityNum*2].cost;
+        }
+    }
+
+    public void StartOfTurn()
+    {
+        block = 0;
+        foreach(Ability a in abilityList)
+        {
+            if (a.tags.Contains(Tags.StartOfTurn))
+            {
+                a.ExecAbility(this);
+            }
+        }
+        CurrentEnergy = MaxEnergy;
+    }
+
+    public void StartOfBattle()
+    {
+        foreach(Ability a in abilityList)
+        {
+            if (a.tags.Contains(Tags.StartOfBattle))
+            {
+                a.ExecAbility(this);
+            }
+        }
+        StartOfTurn();
+    }
+}
