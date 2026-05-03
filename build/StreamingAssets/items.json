@@ -1,0 +1,135 @@
+{"itemList":[
+    {
+        "id":0,
+        "ActiveName":"DoubleBite",
+        "PassiveName":"Venomous",
+        "ActiveStrength": 4,
+        "PassiveStrength":2,
+        "ActiveCost": 2,
+        "ActiveDescription":"Двойной кусь: две атаки",
+        "PassiveDescription": "Вонючка: в начале хода ядовитые атаки усиливаются",
+        "Image":"badger",
+  "Icon":"DoubleBiteIcon"
+    },
+    {
+        "id":1,
+        "ActiveName":"Heal",
+        "PassiveName":"Health",
+        "ActiveStrength": 1,
+        "PassiveStrength":1,
+  "ActiveCost": 1,
+        "ActiveDescription":"Лечение",
+        "PassiveDescription": "Здоровый: защита +1",
+        "Image":"broccoli",
+  "Icon":"HealIcon"
+    },
+    {
+        "id":2,
+        "ActiveName":"Block",
+        "PassiveName":"Fast",
+        "ActiveStrength": 2,
+        "PassiveStrength":1,
+  "ActiveCost": 2,
+        "ActiveDescription":"Спрятаться: + к защите",
+        "PassiveDescription": "Быстрый: +1 энергия",
+        "Image":"bunny",
+  "Icon":"HideIcon"
+    },
+    {
+        "id":3,
+        "ActiveName":"Bite",
+        "PassiveName":"IncreaseAttacksDamage",
+        "ActiveStrength": 1,
+        "PassiveStrength":2,
+  "ActiveCost": 1,
+        "ActiveDescription":"Кусь",
+        "PassiveDescription": "Колючки: + к урону",
+        "Image":"cactus",
+  "Icon":"AttackIcon"
+    },
+    {
+        "id":4,
+        "ActiveName":"Block",
+        "PassiveName":"EnhanceAbility",
+        "ActiveStrength": 2,
+        "PassiveStrength":4,
+  "ActiveCost": 1,
+        "ActiveDescription":"Защита +1",
+        "PassiveDescription": "Клад: статусы в два раза эффективнее",
+        "Image":"chest",
+  "Icon":"HideIcon"
+    },
+    {
+        "id":5,
+        "ActiveName":"Poison",
+        "PassiveName":"Venom",
+        "ActiveStrength": 2,
+        "PassiveStrength":5,
+  "ActiveCost": 1,
+        "ActiveDescription":"Лягушка: атака ядом",
+        "PassiveDescription": "Атаковать всех ядом в начале хода",
+        "Image":"frog",
+  "Icon":"PoisonIcon"
+    },
+    {
+        "id":6,
+        "ActiveName":"SuperBite",
+        "PassiveName":"Bold",
+        "ActiveStrength": 5,
+        "PassiveStrength":4,
+  "ActiveCost": 2,
+        "ActiveDescription":"Супер кусь: шанс убрать врагу половину его здоровья",
+        "PassiveDescription": "Бодрый: первое действие стоит дороже на 1, но и срабатывает на 1 раз больше",
+        "Image":"komodo dragon",
+  "Icon":"SuperBiteIcon"
+    },
+    {
+        "id":7,
+        "ActiveName":"Poison",
+        "PassiveName":"IncreaseAttacksDamage",
+        "ActiveStrength": 2,
+        "PassiveStrength":5,
+  "ActiveCost": 1,
+        "ActiveDescription":"Крапива: атака ядом",
+        "PassiveDescription": "Крапива: + к урону",
+        "Image":"krapiva",
+  "Icon":"PoisonIcon"
+    },
+    {
+        "id":8,
+        "ActiveName":"Confusion",
+        "PassiveName":"Venomous",
+        "ActiveStrength": 3,
+        "PassiveStrength":2,
+  "ActiveCost": 3,
+        "ActiveDescription":"Путаница: враги атакуют друг друга",
+        "PassiveDescription": "Ядовитый: ядовитые атаки усиливаются",
+        "Image":"mushroom",
+  "Icon":"ConfusionIcon"
+    },
+    {
+        "id":9,
+        "ActiveName":"Attack",
+        "PassiveName":"Flight",
+        "ActiveStrength": 1,
+        "PassiveStrength":5,
+  "ActiveCost": 1,
+        "ActiveDescription":"Кусь",
+        "PassiveDescription": "Умеет летать",
+        "Image":"owl",
+  "Icon":"AttackIcon"
+    },
+    {
+        "id":10,
+        "ActiveName":"FullHeal",
+        "PassiveName":"Flight",
+        "ActiveStrength": 5,
+        "PassiveStrength":5,
+  "ActiveCost": 3,
+        "ActiveDescription":"Исцеление: полностью восстановить всё здоровье 1 раз",
+        "PassiveDescription": "Умеет летать",
+        "Image":"stork",
+  "Icon":"HealingIcon"
+    }
+    ]
+}
