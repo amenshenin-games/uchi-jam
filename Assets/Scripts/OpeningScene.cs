@@ -23,23 +23,19 @@ public class Openingscene : MonoBehaviour, IPointerDownHandler
     private List<string> Lines;
     private List<string> DubbingLines;
     
-    async Task Awake()
+
+    async Task  Start()
     {
         GameObject bkgMusic = GameObject.Find("music");
         if (bkgMusic != null)
            bkgMusic.GetComponent<MusicPersistence>().SetTrack(musicTrack);
         LineLoader lineLoader = new LineLoader(); 
-        Debug.Log(Application.streamingAssetsPath + dialogFile);
-        await lineLoader.LoadText(Application.streamingAssetsPath + dialogFile);// Установите свой репозиторий сюда
+        Debug.Log(dialogFile);
+        await lineLoader.LoadText(dialogFile);// Установите свой репозиторий сюда
         Lines = lineLoader.GetDialogLines();
         DubbingLines = lineLoader.GetDubbingFiles();
         NextLine();
         Replay.onClick.AddListener(()=>{AudioSource.Play();});
-        //Application.RequestUserAuthorization(UserAuthorization.WebCam | UserAuthorization.Microphone);
-    }
-
-    void Start()
-    {
     }
 
     public void OnPointerDown(PointerEventData eventData)
