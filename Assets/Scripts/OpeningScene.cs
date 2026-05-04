@@ -30,7 +30,6 @@ public class Openingscene : MonoBehaviour, IPointerDownHandler
         if (bkgMusic != null)
            bkgMusic.GetComponent<MusicPersistence>().SetTrack(musicTrack);
         LineLoader lineLoader = new LineLoader(); 
-        Debug.Log(dialogFile);
         await lineLoader.LoadText(dialogFile);// Установите свой репозиторий сюда
         Lines = lineLoader.GetDialogLines();
         DubbingLines = lineLoader.GetDubbingFiles();

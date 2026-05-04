@@ -153,12 +153,13 @@ public class FightManager : MonoBehaviour
             }
             i++;
         }
-        foreach (int dead in deadEnemies)
+
+        foreach (int index in deadEnemies.OrderByDescending(i => i))
         {
-            EnemyData.RemoveAt(dead);
-            enemies[dead].gameObject.SetActive(false);
-            Destroy(enemies[dead]);
-            enemies.RemoveAt(dead);
+            EnemyData.RemoveAt(index);
+            enemies[index].gameObject.SetActive(false);
+            Destroy(enemies[index]);
+            enemies.RemoveAt(index);
         }
         if (EnemyData.Count == 0)
         {
