@@ -55,7 +55,7 @@ public class FightManager : MonoBehaviour
             passives.Add(item.PassiveDescription);
 
             
-            SetUpButton(AbilityButtons[i], i, item.ActiveDescription, item.Icon);
+            SetUpButton(AbilityButtons[i], i, item.ActiveDescription + " \nЦена: " + item.ActiveCost, item.Icon);
             i++;
         }
 
