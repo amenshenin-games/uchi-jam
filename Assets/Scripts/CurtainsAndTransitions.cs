@@ -18,7 +18,8 @@ public class CurtainsAndTransitions : MonoBehaviour
     {
         if (NextSceneButton is not null)
         {
-            source.PlayOneShot(openSound);
+            if (NextScene != "Opening 1")
+                source.PlayOneShot(openSound);
             Debug.Log("SET BUTTON");
             NextSceneButton.onClick.AddListener(GoToNextScene);
         }
@@ -27,7 +28,8 @@ public class CurtainsAndTransitions : MonoBehaviour
 
     public void GoToNextScene()
     {
-        source.PlayOneShot(closeSound);
+        if (NextScene != "Opening 1")
+            source.PlayOneShot(closeSound);
         StartCoroutine(LoadNext(NextScene));
     }
     
