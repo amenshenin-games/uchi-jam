@@ -30,7 +30,8 @@ public class TakePhoto : MonoBehaviour
     {
 
         Instructions.SetText("Сделай снимок своего рисунка");
-        
+        PhotoSurface.texture = null; 
+        VideoSurface.texture = null; 
 
         List<string> camList = new List<string>();
         foreach (WebCamDevice cam in WebCamTexture.devices)
