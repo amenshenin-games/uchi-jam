@@ -12,7 +12,7 @@
         "id": 1,
         "Health":8,
         "ActionStrList":["SuperBite"],
-        "Strength":[3],
+        "Strength":[40],
         "Image": "cloud",
         "ChallengeRating": 4,
   "Icons": ["SuperBiteMobIcon"]

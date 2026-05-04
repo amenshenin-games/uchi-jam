@@ -74,12 +74,16 @@ public class TakePhoto : MonoBehaviour
     }
     private void OnPhotoButton()
     {
+        if (webcamTexture != null)
+        {
+            Texture2D photo = new Texture2D(webcamTexture.width, webcamTexture.height); 
+            photo.SetPixels(webcamTexture.GetPixels());
+            photo.Apply();
+            PhotoSurface.texture = photo;
+            Instructions.SetText("Выдели на фото своего чудика");
+            
+        }
         //PhotoImage = VideoImage;
-        Texture2D photo = new Texture2D(webcamTexture.width, webcamTexture.height); 
-        photo.SetPixels(webcamTexture.GetPixels());
-        photo.Apply();
-        PhotoSurface.texture = photo;
-        Instructions.SetText("Выдели на фото своего чудика");
     }
 
     private void OnNextButton()
@@ -93,56 +97,64 @@ public class TakePhoto : MonoBehaviour
         {
             creatureData = creatureObject.GetComponent<CreatureData>();
         }
-        
-
-        Vector2 StartPos = PhotoSurface.GetComponent<DrawBox>().StartPos;
-        Vector2 EndPos = PhotoSurface.GetComponent<DrawBox>().EndPos;
-        Texture textureFromImage = PhotoSurface.texture;
-        
-        if (StartPos != EndPos) // Обрезание
-        {
-            float coef = textureFromImage.width / PhotoSurface.GetComponent<RectTransform>().rect.width; //Разница окна с фото и разрешением фото
-            StartPos *= coef;
-            EndPos *= coef;
-            
-            StartPos.x = textureFromImage.width/2 + StartPos.x; // Преобразование в систему координат от верхнего левого угла
-            StartPos.y = textureFromImage.height/2 - StartPos.y;
-            EndPos.x = textureFromImage.width/2 + EndPos.x;
-            EndPos.y = textureFromImage.height/2 - EndPos.y;
-            
-            float tmp;
-            if (StartPos.x > EndPos.x) // В какую бы сторону не провели квадрат, нам всегда нужен левый верхний уол
+        Texture2D croppedTex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+        try {
+            if (PhotoSurface.texture != null)
             {
-                tmp = StartPos.x;
-                StartPos.x = EndPos.x;
-                EndPos.x = tmp;
-            }
-            if (StartPos.y > EndPos.y)
-            {
-                tmp = StartPos.y;
-                StartPos.y = EndPos.y;
-                EndPos.y = tmp;
-            }
+                Vector2 StartPos = PhotoSurface.GetComponent<DrawBox>().StartPos;
+                Vector2 EndPos = PhotoSurface.GetComponent<DrawBox>().EndPos;
+                Texture textureFromImage = PhotoSurface.texture;
+                
+                if (StartPos != EndPos) // Обрезание
+                {
+                    float coef = textureFromImage.width / PhotoSurface.GetComponent<RectTransform>().rect.width; //Разница окна с фото и разрешением фото
+                    StartPos *= coef;
+                    EndPos *= coef;
+                    
+                    StartPos.x = textureFromImage.width/2 + StartPos.x; // Преобразование в систему координат от верхнего левого угла
+                    StartPos.y = textureFromImage.height/2 - StartPos.y;
+                    EndPos.x = textureFromImage.width/2 + EndPos.x;
+                    EndPos.y = textureFromImage.height/2 - EndPos.y;
+                    
+                    float tmp;
+                    if (StartPos.x > EndPos.x) // В какую бы сторону не провели квадрат, нам всегда нужен левый верхний уол
+                    {
+                        tmp = StartPos.x;
+                        StartPos.x = EndPos.x;
+                        EndPos.x = tmp;
+                    }
+                    if (StartPos.y > EndPos.y)
+                    {
+                        tmp = StartPos.y;
+                        StartPos.y = EndPos.y;
+                        EndPos.y = tmp;
+                    }
 
-            OpenCVForUnity.CoreModule.Rect rect = new OpenCVForUnity.CoreModule.Rect((int)StartPos.x, //x top left
-                                                         (int)StartPos.y, //y top left
-                                                         (int)EndPos.x - (int)StartPos.x, //width
-                                                         (int)EndPos.y - (int)StartPos.y); //height
+                    OpenCVForUnity.CoreModule.Rect rect = new OpenCVForUnity.CoreModule.Rect((int)StartPos.x, //x top left
+                                                                (int)StartPos.y, //y top left
+                                                                (int)EndPos.x - (int)StartPos.x, //width
+                                                                (int)EndPos.y - (int)StartPos.y); //height
 
+                    
+                    Mat fullMat = new Mat(PhotoSurface.texture.height, PhotoSurface.texture.width, CvType.CV_8UC4);
+                    Utils.texture2DToMat((Texture2D)PhotoSurface.texture, fullMat);
+                    Mat croppedMat = new Mat(fullMat, rect);
+                    croppedTex = new Texture2D(rect.width, rect.height, TextureFormat.RGBA32, false);
+                    Utils.matToTexture2D(croppedMat, croppedTex);
+                    fullMat.release();
+                    croppedMat.release();
+
+                } 
+            }
             
-            Mat fullMat = new Mat(PhotoSurface.texture.height, PhotoSurface.texture.width, CvType.CV_8UC4);
-            Utils.texture2DToMat((Texture2D)PhotoSurface.texture, fullMat);
-            Mat croppedMat = new Mat(fullMat, rect);
-            Texture2D croppedTex = new Texture2D(rect.width, rect.height, TextureFormat.RGBA32, false);
-            Utils.matToTexture2D(croppedMat, croppedTex);
-            fullMat.release();
-            croppedMat.release();
-
-            creatureData.image = croppedTex;
+            webcamTexture.Stop();
+            webcamTexture = null;
+        }
+        catch (System.Exception e) {
+            Debug.LogError(e.Message);
         }
 
-        webcamTexture.Stop();
-        webcamTexture = null;
+        creatureData.image = croppedTex;
         
         SceneManager.LoadScene("Edit");
     }

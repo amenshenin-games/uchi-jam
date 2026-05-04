@@ -46,15 +46,15 @@ public class CaptureAudio : MonoBehaviour
 
         if (!imgChanged)
         {
-            StartCoroutine(SwapRoutine(StartRecButton, RedRecord));
-            AudioClip = Microphone.Start(MicrophoneName, false, 2, AudioSettings.outputSampleRate);
+            StartCoroutine(SwapRoutine(true, StartRecButton, RedRecord));
+            
         }
     }
     private void OnListenButton()
     {
         if (!imgChanged && AudioClip != null) 
         {
-            StartCoroutine(SwapRoutine(ListenButton, GreenListen));
+            StartCoroutine(SwapRoutine(false, ListenButton, GreenListen));
             AudioSource audioSource = GetComponent<AudioSource>();
             audioSource.clip = AudioClip;
             audioSource.Play();
@@ -67,20 +67,20 @@ public class CaptureAudio : MonoBehaviour
 
 
 
-    System.Collections.IEnumerator SwapRoutine(Button button, Sprite newImage)
+    System.Collections.IEnumerator SwapRoutine(bool startRec, Button button, Sprite newImage)
     {
+        if (startRec)
+            AudioClip = Microphone.Start(null, false, 2, AudioSettings.outputSampleRate);
         imgChanged = true;
-        // 1. Store the original sprite
         orig = button.image.sprite;
 
-        // 2. Change to the new sprite
         button.image.sprite = newImage;
 
-        // 3. Wait for 2 seconds
         yield return new WaitForSeconds(2f);
 
-        // 4. Revert to the original sprite
         button.image.sprite = orig;
         imgChanged = false;
+        if (startRec)
+            Microphone.End("0");
     }
 }
