@@ -75,7 +75,7 @@
         "id":6,
         "ActiveName":"SuperBite",
         "PassiveName":"Bold",
-        "ActiveStrength": 5,
+        "ActiveStrength": 60,
         "PassiveStrength":4,
   "ActiveCost": 2,
         "ActiveDescription":"Супер кусь: шанс убрать врагу половину его здоровья",

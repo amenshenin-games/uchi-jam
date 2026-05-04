@@ -50,6 +50,7 @@ public abstract class Ability
         for (int i=0; i < repeats; i++){
             Debug.Log(name);
             Debug.Log(value);
+            Debug.Log(cost);
             DoStuff(target, args);
         }
     }
@@ -187,6 +188,9 @@ public class Entity
     /// </summary>
     public void StatusTick(params object[] args)
     {
+        Debug.Log(args.Length);
+        Debug.Log(args.GetType());
+        Debug.Log(args[0].GetType());
         List<string> keys = statusEffects.Keys.ToList();
         foreach (string name in keys)
         {
@@ -289,8 +293,15 @@ public class Player : Entity
     {
         if (CurrentEnergy >= abilityList[abilityNum*2].cost)
         {
-            abilityList[abilityNum*2].ExecAbility(target, args);
+            Debug.Log(abilityList[abilityNum*2].cost);
+            Debug.Log(CurrentEnergy);
+            if (abilityList[abilityNum*2].tags.Contains(Tags.Positive))
+                abilityList[abilityNum*2].ExecAbility(this, args);
+            else
+                abilityList[abilityNum*2].ExecAbility(target, args);
+            
             CurrentEnergy -= abilityList[abilityNum*2].cost;
+            Debug.Log(CurrentEnergy);
         }
     }
 

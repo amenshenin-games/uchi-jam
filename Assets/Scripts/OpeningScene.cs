@@ -12,17 +12,29 @@ public class Openingscene : MonoBehaviour, IPointerDownHandler
     [SerializeField] public GameObject SpeechBubble;
     [SerializeField] public TMP_Text SpeechText;
     [SerializeField] public GameObject CreateButton;
+    [SerializeField] public string dialogFile;
+    [SerializeField] public string musicTrack;
+    [SerializeField] public Image Mustage;
+    [SerializeField] public CurtainsAndTransitions Curtains;
+    [SerializeField] public AudioSource AudioSource;
+    [SerializeField] public Button Replay;
+
     private int CurrentLine = 0;
     private List<string> Lines;
-    private List<AudioClip> DubbingLines;
+    private List<string> DubbingLines;
     
     async Task Awake()
     {
+        GameObject bkgMusic = GameObject.Find("music");
+        if (bkgMusic != null)
+           bkgMusic.GetComponent<MusicPersistence>().SetTrack(musicTrack);
         LineLoader lineLoader = new LineLoader(); 
-        await lineLoader.LoadText(Application.streamingAssetsPath + "/dialogLines.json");// Установите свой репозиторий сюда
+        Debug.Log(Application.streamingAssetsPath + dialogFile);
+        await lineLoader.LoadText(Application.streamingAssetsPath + dialogFile);// Установите свой репозиторий сюда
         Lines = lineLoader.GetDialogLines();
-        //TODO: Dub GetDubbingFiles()
+        DubbingLines = lineLoader.GetDubbingFiles();
         NextLine();
+        Replay.onClick.AddListener(()=>{AudioSource.Play();});
         //Application.RequestUserAuthorization(UserAuthorization.WebCam | UserAuthorization.Microphone);
     }
 
@@ -40,15 +52,38 @@ public class Openingscene : MonoBehaviour, IPointerDownHandler
         if (CurrentLine < Lines.Count)
         {
             SpeechText.SetText(Lines[CurrentLine]);
-            CurrentLine++;
         }
         else
         {
             SpeechBubble.SetActive(false);
-            CreateButton.SetActive(true);
+            if (CreateButton != null)
+                CreateButton.SetActive(true);
+            else
+            {
+                Curtains.GoToNextScene();
+            }
+            
+            return;
         }
+        Debug.Log(Mustage.GetComponent<Animator>().GetBool("Mustage"));
+        Debug.Log(Mustage.GetComponent<Animator>().GetBool("Mustage"));
+        Mustage.GetComponent<Animator>().Play("mustg", 0, 0f); string path = "items/";
+
+        AudioSource.clip = Resources.Load<AudioClip>("dubb/" + DubbingLines[CurrentLine]);
+        AudioSource.Play();
+        
+            CurrentLine++;
+        //TurnOffAfterDelay(2);
     }
     
+    System.Collections.IEnumerator TurnOffAfterDelay(float delay)
+    {
+        //anim.Play("Base Layer.YourAnimationName", 0, 0f); 
+        Mustage.GetComponent<Animator>().SetBool("Mustage", true);
+        yield return new WaitForSeconds(delay);
+        Mustage.GetComponent<Animator>().SetBool("Mustage", false);
+        Debug.Log("Bool turned off!");
+    }
 }
 
 public interface IDialogRepository
@@ -85,12 +120,12 @@ public class LineLoader : IDialogRepository
     async public Task LoadText(string fileName)
     {
         //string jsonText = File.ReadAllText(fileName);
-        string jsonText = await LoadDialogsAsync();
+        string jsonText = await LoadDialogsAsync(fileName);
         linesListWrapper  = JsonUtility.FromJson<LinesListWrapper>(jsonText);
     }
-    async Task<string> LoadDialogsAsync()
+    async Task<string> LoadDialogsAsync(string fileName)
     {
-        string path = Path.Combine(Application.streamingAssetsPath, "dialogLines.json");
+        string path = Path.Combine(Application.streamingAssetsPath, fileName);
         using (UnityWebRequest webRequest = UnityWebRequest.Get(path))
         {
             var operation = webRequest.SendWebRequest();

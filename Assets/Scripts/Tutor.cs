@@ -6,10 +6,14 @@ public class Tutor : MonoBehaviour
 {
     public int CurrentImage = 0;
     public List<Sprite> Images;
+    public List<AudioClip> audioInstructions;
     public Image Image;
+    public AudioSource AudioSource;
     void Start()
     {
         Image = GetComponent<Image>();
+        AudioSource.clip = audioInstructions[CurrentImage];
+        AudioSource.Play();
     }
     public void Next()
     {
@@ -20,5 +24,6 @@ public class Tutor : MonoBehaviour
             return;
         }
         Image.sprite = Images[CurrentImage];
+        AudioSource.PlayOneShot(audioInstructions[CurrentImage]);
     }
 }

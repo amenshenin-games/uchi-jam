@@ -43,7 +43,7 @@ public class FightManager : MonoBehaviour
         player = new Player(20);
         Healthbar.maxValue = 20;
         ItemLoader itemLoader = new ItemLoader();
-        
+        //itemLoader.
         passives = new List<string>();
         int i = 0;
         foreach (Item item in itemLoader.GetChosenItems())
@@ -104,12 +104,21 @@ public class FightManager : MonoBehaviour
 
         EndTurnButton.onClick.AddListener(EndTurn);
         player.StartOfBattle();
+        CurrentEnergy.SetText(player.CurrentEnergy.ToString());
+        CheckHealth();
         
         creatureData = GameObject.Find("CreatureObject").GetComponent<CreatureData>();
         Chel.texture = creatureData.image;
         Chel.SetNativeSize();
+        float currentWidth = Chel.rectTransform.rect.width;
+        float currentHeight = Chel.rectTransform.rect.height;
+        float currentArea = currentWidth * currentHeight;
+        if (currentArea > 300000f)
+        {
+            float targetScale = Mathf.Sqrt(300000f / (Chel.rectTransform.rect.width * Chel.rectTransform.rect.height));
+            Chel.rectTransform.localScale = new Vector3(targetScale, targetScale, 1f);
+        }
     }
-
     void Update()
     {
         if (SelectedAbility >= 0)
@@ -134,19 +143,26 @@ public class FightManager : MonoBehaviour
             Defeat();
             return;
         }
-        bool allDead = true;
+        List<int> deadEnemies = new List<int>();
+        int i = 0;
         foreach (Enemy en in EnemyData)
         {
-            if (en.CurrentHealth > 0)
+            if (en.CurrentHealth <= 0)
             {
-                allDead = false;
-                break;
+                deadEnemies.Add(i);
             }
+            i++;
         }
-        if (allDead)
+        foreach (int dead in deadEnemies)
+        {
+            EnemyData.RemoveAt(dead);
+            enemies[dead].gameObject.SetActive(false);
+            Destroy(enemies[dead]);
+            enemies.RemoveAt(dead);
+        }
+        if (EnemyData.Count == 0)
         {
             Victory();
-            
         }
     }
     public void Defeat()
@@ -191,7 +207,7 @@ public class FightManager : MonoBehaviour
     public void Select(int enemy)
     {
         
-        player.UseAbility(SelectedAbility, enemies[enemy].enemyData, EnemyData);
+        player.UseAbility(SelectedAbility, enemies[enemy].enemyData, EnemyData.ToArray());
         foreach (EnemyComponent ec in enemies)
         {
             ec.GetComponentInChildren<Button>().gameObject.SetActive(false);
@@ -200,15 +216,17 @@ public class FightManager : MonoBehaviour
         SelectedAbility = -1;
         CurrentEnergy.SetText(player.CurrentEnergy.ToString());
         CheckHealth();
-        audioSource.PlayOneShot(creatureData.sound);
+        if (creatureData.sound != null)
+            audioSource.PlayOneShot(creatureData.sound);
     }
 
     private void OnAbilitySelect()
     {
-        Debug.Log(SelectedAbility * 2);
         if (player.abilityList[SelectedAbility * 2].tags.Contains(Tags.Positive))
         {
-            player.UseAbility(SelectedAbility, player, EnemyData);
+            player.UseAbility(SelectedAbility, player, EnemyData, EnemyData.ToArray());
+            CurrentEnergy.SetText(player.CurrentEnergy.ToString());
+            CheckHealth();
             return;
         }
         foreach (EnemyComponent ec in enemies)
@@ -221,11 +239,11 @@ public class FightManager : MonoBehaviour
     {
         foreach (EnemyComponent ec in enemies)
         {
-            ec.enemyData.StatusTick();
-            ec.enemyData.TakeTurn(EnemyData);
+            ec.enemyData.StatusTick(EnemyData.ToArray());
+            ec.enemyData.TakeTurn(EnemyData.ToArray());
             ec.UpdateIcon();
         }
-        player.StatusTick();
+        player.StatusTick(EnemyData.ToArray());
         player.StartOfTurn();
         CurrentEnergy.SetText(player.CurrentEnergy.ToString());
         CheckHealth();

@@ -9,12 +9,16 @@ public class CurtainsAndTransitions : MonoBehaviour
     [SerializeField] public Button NextSceneButton;
     [SerializeField] public string NextScene;
     [SerializeField] public Animator CurtainAnimator;
+    [SerializeField] public AudioSource source;
+    [SerializeField] public AudioClip openSound;
+    [SerializeField] public AudioClip closeSound;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         if (NextSceneButton is not null)
         {
+            source.PlayOneShot(openSound);
             Debug.Log("SET BUTTON");
             NextSceneButton.onClick.AddListener(GoToNextScene);
         }
@@ -23,6 +27,7 @@ public class CurtainsAndTransitions : MonoBehaviour
 
     public void GoToNextScene()
     {
+        source.PlayOneShot(closeSound);
         StartCoroutine(LoadNext(NextScene));
     }
     

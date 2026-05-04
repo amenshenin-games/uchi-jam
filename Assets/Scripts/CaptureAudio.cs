@@ -3,7 +3,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement; 
-
+//using WebGLMicrophone;
 public class CaptureAudio : MonoBehaviour
 {
     [SerializeField] public TMP_Dropdown dropDownList;
@@ -33,8 +33,8 @@ public class CaptureAudio : MonoBehaviour
 
     private void OnStartRecButton()
     {
-        List<string> micList = new List<string>();
-        foreach (string mic in Microphone.devices)
+        /*List<string> micList = new List<string>();
+        foreach (string mic in UnityWebGLMicrophone.Microphone.devices)
         {
             micList.Add(mic);
         }
@@ -42,8 +42,8 @@ public class CaptureAudio : MonoBehaviour
         dropDownList.AddOptions(micList);
         dropDownList.onValueChanged.AddListener(delegate {
                 MicrophoneName = Microphone.devices[dropDownList.value];
-            });
-            
+            });*/
+
         if (!imgChanged)
         {
             StartCoroutine(SwapRoutine(StartRecButton, RedRecord));
@@ -52,7 +52,7 @@ public class CaptureAudio : MonoBehaviour
     }
     private void OnListenButton()
     {
-        if (!imgChanged)
+        if (!imgChanged && AudioClip != null) 
         {
             StartCoroutine(SwapRoutine(ListenButton, GreenListen));
             AudioSource audioSource = GetComponent<AudioSource>();

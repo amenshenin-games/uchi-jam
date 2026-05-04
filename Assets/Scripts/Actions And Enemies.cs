@@ -66,13 +66,13 @@ public class ActionsUtility
                 a = new AttackAbility(strength, cost);
                 break;
             case Actions.Poison:
-                a = new StatusAbility<Poisoned>(strength, cost, 1, new List<Tags> { Tags.Venom, Tags.Status, Tags.Attack });
+                a = new StatusAbility<Poisoned>(strength, cost, 2, new List<Tags> { Tags.Venom, Tags.Status, Tags.Attack });
                 break;
             case Actions.SuperBite:
                 a = new SuperBiteAbility(strength, cost);
                 break;
             case Actions.Confusion:
-                a = new StatusAbility<Confused>(strength, cost, 1, new List<Tags> { Tags.Status });
+                a = new Confuse(strength, cost, 2);
                 break;
             case Actions.Block:
                 a = new Block(strength, cost);
@@ -309,6 +309,35 @@ public class SuperBiteAbility : Ability
         }
     }
 }
+public class Confuse: Ability
+{
+    int duration;
+    public Confuse(int value, int cost, int duration): base(value, cost)
+    {
+        tags.Add(Tags.Active);
+        tags.Add(Tags.Status);
+        this.duration = duration;
+    }
+    protected override void DoStuff(Entity target, params object[] args)
+    {
+        Confused pStatus = new Confused();
+        pStatus.Init(value, 0, 2);
+        Debug.Log(args.Length);
+        for (int i=0; i<args.Length; i++)
+        {
+            GenericEnemy enemy = (GenericEnemy)args[i];
+            Debug.Log(enemy.id);
+            if (!enemy.statusEffects.ContainsKey(pStatus.statusName))
+            {
+                enemy.statusEffects.Add(pStatus.statusName, pStatus);
+            }
+            else
+            {
+                enemy.statusEffects[pStatus.statusName].duration += 1;
+            }
+        }
+    }
+}
 
 public class Confused : Status
 {
@@ -333,9 +362,7 @@ public class Confused : Status
         {
             oldTarget = targetOfThisStatus.target;
         }
-
         int randomIndex = UnityEngine.Random.Range(0, args.Length);
-        Debug.Log(randomIndex);
         targetOfThisStatus.target = (Entity)args[randomIndex];
     }
     public override void EndOfStatus(Entity target, params object[] args)
@@ -350,6 +377,7 @@ public class Block : Ability
     public Block(int value, int cost): base(value, cost)
     {
         name = Actions.Block;
+        tags.Add(Tags.Positive);
         tags.Add(Tags.Active);
         tags.Add(Tags.Defense);
     }
